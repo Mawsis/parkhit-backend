@@ -1,7 +1,7 @@
 import express, { response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { sequelize } from "./config/database";
+import  prisma  from "./config/prisma";
 import { notFound } from "./middlewares/NotFoundMiddleware";
 
 dotenv.config();
@@ -21,9 +21,9 @@ app.use("/auth", authRoutes);
 
 app.use(notFound);
 // Database connection
-sequelize.sync().then(() => {
-  console.log("Database synced successfully");
-});
+prisma.$connect()
+  .then(() => console.log("Database connected"))
+  .catch((error:any) => console.error(error));
 
 // Start the server
 const PORT = process.env.PORT || 3000;

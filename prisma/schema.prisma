@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String     @id @default(uuid())
+  name     String
+  email    String     @unique
+  password String
+  role     UserRole
+  bookings Booking[]
+  Parking  Parking[]
+  Feedback Feedback[]
+}
+
+model Parking {
+  id           String        @id @default(uuid())
+  name         String
+  location     String
+  ownerId      String
+  owner        User          @relation(fields: [ownerId], references: [id])
+  parkingSpots ParkingSpot[]
+  feedbacks    Feedback[]
+}
+
+model ParkingSpot {
+  id           String    @id @default(uuid())
+  parkingId    String
+  parking      Parking   @relation(fields: [parkingId], references: [id])
+  isAvailable  Boolean
+  pricePerHour Float
+  bookings     Booking[]
+}
+
+model Booking {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  parkingSpotId String
+  parkingSpot   ParkingSpot @relation(fields: [parkingSpotId], references: [id])
+  startTime     DateTime
+  endTime       DateTime
+  totalPrice    Float
+}
+
+model Feedback {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  parkingId String
+  parking   Parking @relation(fields: [parkingId], references: [id])
+  comment   String
+  rating    Float
+}
+
+enum UserRole {
+  ADMIN
+  PARKING_OWNER
+  CLIENT
+}
