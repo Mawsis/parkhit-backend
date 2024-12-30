@@ -1,7 +1,8 @@
-import express from "express";
+import express, { response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { sequelize } from "./config/database";
+import { notFound } from "./middlewares/NotFoundMiddleware";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ import authRoutes from "./routes/authRoutes";
 app.use("/auth", authRoutes);
 // app.use("/parking", parkingRoutes);
 
+app.use(notFound);
 // Database connection
 sequelize.sync().then(() => {
   console.log("Database synced successfully");
