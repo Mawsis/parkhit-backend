@@ -1,31 +1,44 @@
-import express, { response } from "express";
+import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
-import  prisma  from "./config/prisma";
+import prisma from "./config/prisma";
 import { notFound } from "./middlewares/NotFoundMiddleware";
+import globalMiddleware from "./middlewares/globalMiddleware";
+import routes from "./routes";
 
-dotenv.config();
+dotenv.config(); // Load environment variables
 
+// Initialize Express app
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Extend Express Request to include user info globally
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        name: string;
+        email: string;
+      } | null;
+    }
+  }
+}
 
-// Routes
-import authRoutes from "./routes/authRoutes";
-// import parkingRoutes from "./routes/parkingRoutes";
+// Apply Global Middleware
+globalMiddleware(app);
 
-app.use("/auth", authRoutes);
-// app.use("/parking", parkingRoutes);
+// Register Routes
+app.use("/", routes);
 
+// Handle 404 Not Found
 app.use(notFound);
-// Database connection
-prisma.$connect()
-  .then(() => console.log("Database connected"))
-  .catch((error:any) => console.error(error));
 
-// Start the server
+// Database Connection
+prisma
+  .$connect()
+  .then(() => console.log("Database connected"))
+  .catch((error: any) => console.error("Database connection error:", error));
+
+// Start the Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

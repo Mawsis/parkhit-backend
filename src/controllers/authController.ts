@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { where } from 'sequelize';
+import { clearToken, generateToken } from '../utils/jwt';
 
 //authenticating with jwt token and cookie
 export const login = async (req: Request, res: Response) => {
@@ -24,13 +24,8 @@ export const login = async (req: Request, res: Response) => {
           res.status(400).json({ message: "Invalid password" });
           return 
         }
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-            expiresIn: "24h"
-        });
-        res.cookie("token", token, {
-            httpOnly: true
-        });
-        res.status(200).json({ message: "Login successful", token });
+        generateToken(res, user.id);
+        res.status(201).json({ message: "Login successful", user });
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
     }
@@ -57,6 +52,16 @@ export const register = async (req: Request, res: Response) => {
             password: hashedPassword,
             role,
           }})
+        if (newUser) {
+          generateToken(res, newUser.id);
+          res.status(201).json({
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+          });
+        } else {
+          res.status(400).json({ message: "An error occurred in creating the user" });
+        }
         res.status(201).json({ message: "User created" });
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
@@ -65,6 +70,6 @@ export const register = async (req: Request, res: Response) => {
 
 //logging out user
 export const logout = async (req: Request, res: Response) => {
-    res.clearCookie("token");
+    clearToken(res);
     res.status(200).json({ message: "Logout successful" });
 }
