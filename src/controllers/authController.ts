@@ -2,51 +2,69 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { where } from 'sequelize';
 
-export const register = async (req: Request, res: Response) => {
-  const { name, email, password, role } = req.body;
-
-  try {
-    console.log(req.body);
-    
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-      },
-    });
-
-    res.status(201).json({ message: 'User registered successfully', user });
-  } catch (error:any) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
+//authenticating with jwt token and cookie
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await prisma.user.findFirst({ where: { email } });
-    
-    if (!user) {
-      res.status(404).json({ error: 'User not found' });
-      return
+    const { email, password } = req.body;
+    try {
+        const user = await prisma.user.findFirst(
+        {
+          where:{email}
+        }
+        );
+        console.log(user);
+        
+        if (!user) {
+          res.status(404).json({ message: "User not found" });
+        return 
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+          res.status(400).json({ message: "Invalid password" });
+          return 
+        }
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
+            expiresIn: "24h"
+        });
+        res.cookie("token", token, {
+            httpOnly: true
+        });
+        res.status(200).json({ message: "Login successful", token });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
     }
-    
-    const isMatch = await bcrypt.compare(password, user!.password);
-    if (!isMatch){
-      res.status(401).json({ error: 'Invalid credentials' }) ;
-      return
-    } 
+}
 
-    const token = jwt.sign({ id: user!.id, role: user!.role }, process.env.JWT_SECRET as string, {
-      expiresIn: '1h',
-    });
-    res.status(200).json({ message: 'Login successful', token });
-  } catch (error:any) {
-    res.status(400).json({ error: error.message });
-  }
-};
+//registering user
+export const register = async (req: Request, res: Response) => {
+    const { name, email, password, role } = req.body;
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email
+            }
+        });
+        if (user) {
+          res.status(400).json({ message: "User already exists" });
+          return
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await prisma.user.create({
+          data: {
+            name,
+            email,
+            password: hashedPassword,
+            role,
+          }})
+        res.status(201).json({ message: "User created" });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+//logging out user
+export const logout = async (req: Request, res: Response) => {
+    res.clearCookie("token");
+    res.status(200).json({ message: "Logout successful" });
+}
