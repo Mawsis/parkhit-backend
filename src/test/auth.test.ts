@@ -13,7 +13,7 @@ describe('Auth Controller', () => {
                 .send({ email: '' });
 
             expect(response.status).toBe(400);
-            expect(response.body.message).toBe('Email and password are required');
+            expect(response.body.errors).toContain('password is required');
         });
 
         it('should return 404 if user is not found', async () => {
@@ -70,5 +70,24 @@ describe('Auth Controller', () => {
                 { expiresIn: '24h' }
             );
         });
+        it('should return 400 for missing email or password', async () => {
+            const response = await request(app)
+                .post('/auth/login')
+                .send({ email: '' });
+
+            expect(response.status).toBe(400);
+            expect(response.body.errors).toContain('Invalid email format');
+            expect(response.body.errors).toContain('password is required');
+        });
+
+        it('should return 400 for invalid email format', async () => {
+            const response = await request(app)
+                .post('/auth/login')
+                .send({ email: 'invalid-email', password: '123456' });
+
+            expect(response.status).toBe(400);
+            expect(response.body.errors).toContain('Invalid email format');
+        });
+
     });
 });

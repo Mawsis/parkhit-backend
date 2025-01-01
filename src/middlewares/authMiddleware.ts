@@ -1,29 +1,33 @@
 import { NextFunction, Request, Response } from "express";
-import  jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import prisma from "../config/prisma";
 import { AuthenticationError } from "../utils/errors";
 
 export const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
-    try{
+    try {
         const token = req.cookies.token;
         if (!token) {
-            throw new AuthenticationError("Unauthorized: token not found")
+            return next(new AuthenticationError("Unauthorized: Token not found"));
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+        } catch (err) {
+            return next(new AuthenticationError("Unauthorized: Invalid token"));
+        }
 
         const user = await prisma.user.findFirst({
-            where: {
-                id: (decoded as any).id
-            }
-        })
+            where: { id: (decoded as any).userId },
+        });
 
-        if(!user){
-            throw new AuthenticationError("Unauthorized: user not found")
+        if (!user) {
+            return next(new AuthenticationError("Unauthorized: User not found"));
         }
 
         req.user = user;
-        next()
-    } catch(error:any){
-        throw new AuthenticationError("Unauthorized")
+        next();
+    } catch (error) {
+        next(error);
     }
-}
+};

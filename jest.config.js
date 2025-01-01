@@ -4,7 +4,7 @@ module.exports = {
     moduleNameMapper: {
       '^@/(.*)$': '<rootDir>/src/$1',
     },
-    setupFilesAfterEnv: ['<rootDir>/src/test/prismaMock.ts'],
+    setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
     testMatch: ['**/*.test.ts'],
     coverageDirectory: 'coverage',
     collectCoverageFrom: [

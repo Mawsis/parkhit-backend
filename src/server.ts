@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import { notFound } from "./middlewares/NotFoundMiddleware";
+import { notFound } from "./middlewares/notFoundMiddleware";
 import globalMiddleware from "./middlewares/globalMiddleware";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/errorMiddleware";

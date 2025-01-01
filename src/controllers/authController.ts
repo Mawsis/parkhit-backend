@@ -16,10 +16,6 @@ export const login = async (
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      throw new ValidationError("Email and password are required");
-    }
-
     const user = await prisma.user.findFirst({ where: { email } });
 
     if (!user) {
@@ -46,17 +42,9 @@ export const register = async (
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      throw new ValidationError("All fields are required");
-    }
-
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
-
-    if (existingUser) {
-      throw new ValidationError("User already exists");
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({

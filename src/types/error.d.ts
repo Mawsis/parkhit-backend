@@ -1,4 +1,6 @@
 export interface ApiError extends Error {
-    statusCode: number;
-    isOperational: boolean;
-  }
+  statusCode: number;
+  isOperational: boolean;
+}
+
+
