@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../types/error';
 import { Prisma } from '@prisma/client';
 import { ValidationError } from '../utils/errors'; // Import ValidationError
+import logger from '../utils/logger';
 
 export const errorHandler = (
   err: Error,
@@ -9,6 +10,11 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  logger.error('Error occurred: %o', {
+    message: err.message,
+    stack: err.stack,
+    status: (err as ApiError).statusCode || 500,
+  });
   // Handle ValidationError
   if (err instanceof ValidationError) {
     res.status(400).json({
