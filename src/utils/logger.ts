@@ -1,28 +1,20 @@
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-const { combine, timestamp, printf, colorize, align } = format;
+const { combine, timestamp, printf, json } = format;
 
-// Custom format for console logs
-const consoleFormat = printf(({ level, message, timestamp, stack }) => {
-    return `[${timestamp}] ${level}: ${stack || message}`;
+// Custom format for log files (human-readable)
+const fileFormat = printf(({ level, message, timestamp, stack }) => {
+    return `[${timestamp}] ${level.toUpperCase()}: ${message} ${stack ? `\nStack: ${stack}` : ''}`;
 });
 
+// Custom logger setup
 const logger = createLogger({
-    level: 'info', // Default log level
+    level: 'info',
     format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // Timestamp format
-        format.errors({ stack: true }), // Include stack traces
-        format.splat(),
-        format.colorize({
-            colors: {
-                error: 'red',
-                warn: 'yellow',
-                info: 'green',
-                debug: 'blue',
-            },
-        }),
-
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        format.errors({ stack: true }),
+        format.splat()
     ),
     defaultMeta: { service: 'parkhit-backend' },
     transports: [
@@ -32,19 +24,22 @@ const logger = createLogger({
             zippedArchive: true,
             maxSize: '20m',
             maxFiles: '14d',
+            format: combine(
+                timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                fileFormat // Use custom file format for better readability
+            ),
         }),
     ],
 });
 
-// Add pretty console output for non-production environments
+// Pretty console logging for non-production environments
 if (process.env.NODE_ENV !== 'production') {
     logger.add(
         new transports.Console({
             format: combine(
-                colorize(), // Add color based on log level
-                align(), // Align logs for better readability
-                timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // Add timestamp
-                consoleFormat // Apply custom formatting
+                format.colorize(),
+                timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                printf(({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`)
             ),
         })
     );
