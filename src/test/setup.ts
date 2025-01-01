@@ -1,13 +1,15 @@
-import { PrismaClient } from '@prisma/client';
 import { mockDeep, mockReset, DeepMockProxy } from 'jest-mock-extended';
+import { PrismaClient } from '@prisma/client';
 
 jest.mock('../config/prisma', () => ({
-  __esModule: true,
-  default: mockDeep<PrismaClient>(),
+    __esModule: true,
+    default: mockDeep<PrismaClient>(),
 }));
 
+const prismaMock = require('../config/prisma').default as DeepMockProxy<PrismaClient>;
+
 beforeEach(() => {
-  mockReset(prismaMock);
+    mockReset(prismaMock);
 });
 
-export const prismaMock = mockDeep<PrismaClient>();
+export default prismaMock;

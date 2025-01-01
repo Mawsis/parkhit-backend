@@ -1,49 +1,61 @@
-import { Request, Response, NextFunction } from 'express';
-import prisma from '../config/prisma';
-import bcrypt from 'bcrypt';
-import { clearToken, generateToken } from '../utils/jwt';
-import { AuthenticationError, NotFoundError, ValidationError } from '../utils/errors';
+import { Request, Response, NextFunction } from "express";
+import prisma from "../config/prisma";
+import bcrypt from "bcrypt";
+import { clearToken, generateToken } from "../utils/jwt";
+import {
+  AuthenticationError,
+  NotFoundError,
+  ValidationError,
+} from "../utils/errors";
 
-export const login = async (req: Request, res: Response, next: NextFunction) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
-      throw new ValidationError('Email and password are required');
+      throw new ValidationError("Email and password are required");
     }
 
     const user = await prisma.user.findFirst({ where: { email } });
-    
+
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new AuthenticationError('Invalid password');
+      throw new AuthenticationError("Invalid password");
     }
 
     generateToken(res, user.id);
-    res.status(200).json({ message: 'Login successful', user });
+    res.status(200).json({ message: "Login successful", user });
   } catch (error) {
     next(error);
   }
 };
 
-export const register = async (req: Request, res: Response, next: NextFunction) => {
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { name, email, password} = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      throw new ValidationError('All fields are required');
+      throw new ValidationError("All fields are required");
     }
 
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (existingUser) {
-      throw new ValidationError('User already exists');
+      throw new ValidationError("User already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -52,8 +64,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         name,
         email,
         password: hashedPassword,
-        role: 'CLIENT',
-      }
+        role: "CLIENT",
+      },
     });
 
     generateToken(res, newUser.id);
@@ -67,10 +79,14 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     clearToken(res);
-    res.status(200).json({ message: 'Logout successful' });
+    res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     next(error);
   }
