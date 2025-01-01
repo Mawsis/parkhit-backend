@@ -4,6 +4,7 @@ import prisma from "./config/prisma";
 import { notFound } from "./middlewares/NotFoundMiddleware";
 import globalMiddleware from "./middlewares/globalMiddleware";
 import routes from "./routes";
+import { errorHandler } from "./middlewares/errorMiddleware";
 
 dotenv.config(); // Load environment variables
 
@@ -29,7 +30,7 @@ globalMiddleware(app);
 // Register Routes
 app.use("/", routes);
 
-// Handle 404 Not Found
+app.use(errorHandler);
 app.use(notFound);
 
 // Database Connection
