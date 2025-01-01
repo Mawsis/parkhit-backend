@@ -1,10 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
-import prisma from "./config/prisma";
 import { notFound } from "./middlewares/NotFoundMiddleware";
 import globalMiddleware from "./middlewares/globalMiddleware";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/errorMiddleware";
+
 
 dotenv.config();
 
