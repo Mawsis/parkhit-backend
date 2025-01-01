@@ -32,9 +32,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password} = req.body;
 
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password) {
       throw new ValidationError('All fields are required');
     }
 
@@ -52,7 +52,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         name,
         email,
         password: hashedPassword,
-        role,
+        role: 'CLIENT',
       }
     });
 

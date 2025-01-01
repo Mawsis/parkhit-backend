@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import  jwt  from "jsonwebtoken";
 import prisma from "../config/prisma";
+import { AuthenticationError } from "../utils/errors";
 
 export const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
     try{
         const token = req.cookies.token;
         if (!token) {
-            res.status(401).json({ message: "Unauthorized: No token" });
-            return
+            throw new AuthenticationError("Unauthorized: token not found")
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
 
@@ -18,13 +18,12 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
         })
 
         if(!user){
-            res.status(401).json({ message: "Unauthorized: User not found"})
-            return 
+            throw new AuthenticationError("Unauthorized: user not found")
         }
 
         req.user = user;
         next()
     } catch(error:any){
-        res.status(401).json({message:"Unauthorized"})
+        throw new AuthenticationError("Unauthorized")
     }
 }

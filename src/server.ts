@@ -6,12 +6,10 @@ import globalMiddleware from "./middlewares/globalMiddleware";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/errorMiddleware";
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
-// Initialize Express app
-const app = express();
+export const app = express();
 
-// Extend Express Request to include user info globally
 declare global {
   namespace Express {
     interface Request {
@@ -24,23 +22,14 @@ declare global {
   }
 }
 
-// Apply Global Middleware
 globalMiddleware(app);
-
-// Register Routes
 app.use("/", routes);
-
-app.use(errorHandler);
 app.use(notFound);
+app.use(errorHandler);
 
-// Database Connection
-prisma
-  .$connect()
-  .then(() => console.log("Database connected"))
-  .catch((error: any) => console.error("Database connection error:", error));
-
-// Start the Server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
