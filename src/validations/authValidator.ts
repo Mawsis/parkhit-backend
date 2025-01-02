@@ -11,3 +11,12 @@ export const loginSchema = z.object({
     password: z.string().nonempty('Password is required'),
 });
 
+export const updateProfileSchema = z.object({
+    name: z.string()
+        .min(3, 'Name should have at least 3 characters')
+        .max(30, 'Name should not exceed 30 characters')
+        .nonempty('Name is required'),
+    email: z.string()
+        .email('Invalid email format')
+        .nonempty('Email is required'),
+});

@@ -7,6 +7,8 @@ import {
   NotFoundError,
   ValidationError,
 } from "../utils/errors";
+import { transform } from "../utils/transform";
+import { userTransform } from "../transformers/userTransform";
 
 export const login = async (
   req: Request,
@@ -77,3 +79,37 @@ export const logout = async (
     next(error);
   }
 };
+
+export const profile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res.status(200).json(transform(req.user, userTransform));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const updateProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { name, email } = req.body;
+    //update user
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { name, email },
+    });
+
+    console.log(updatedUser);
+
+
+    res.status(200).json(transform(updatedUser, userTransform));
+  } catch (error) {
+    next(error);
+  }
+}
