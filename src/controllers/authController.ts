@@ -42,9 +42,7 @@ export const register = async (
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({
