@@ -4,6 +4,7 @@ import { notFound } from "./middlewares/notFoundMiddleware";
 import globalMiddleware from "./middlewares/globalMiddleware";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/errorMiddleware";
+import { User } from "@prisma/client";
 
 
 dotenv.config();
@@ -13,11 +14,7 @@ export const app = express();
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: string;
-        name: string;
-        email: string;
-      } | null;
+      user?: User
     }
   }
 }
