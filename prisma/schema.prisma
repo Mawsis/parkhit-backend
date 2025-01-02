@@ -8,58 +8,151 @@ datasource db {
 }
 
 model User {
-  id       String     @id @default(uuid())
-  name     String
-  email    String     @unique
-  password String
-  role     UserRole
-  bookings Booking[]
-  Parking  Parking[]
-  Feedback Feedback[]
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parkings      Parking[]
+  favorites     Favorite[]
+  feedbacks     Feedback[]
+  notifications Notification[]
+  verification  Verification?
+  Booking       Booking[]
 }
 
 model Parking {
-  id           String        @id @default(uuid())
-  name         String
-  location     String
-  ownerId      String
-  owner        User          @relation(fields: [ownerId], references: [id])
-  parkingSpots ParkingSpot[]
-  feedbacks    Feedback[]
+  id          String   @id @default(uuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  name        String
+  location    String
+  totalSpots  Int
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tariffs   Tariff[]
+  feedbacks Feedback[]
+  spots     ParkingSpot[]
+  favorites Favorite[]
 }
 
 model ParkingSpot {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   parkingId    String
-  parking      Parking   @relation(fields: [parkingId], references: [id])
+  parking      Parking  @relation(fields: [parkingId], references: [id])
+  number       String
   isAvailable  Boolean
   pricePerHour Float
-  bookings     Booking[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+model Tariff {
+  id            String   @id @default(uuid())
+  parkingId     String
+  parking       Parking  @relation(fields: [parkingId], references: [id])
+  durationRange String
+  price         Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Booking {
-  id            String      @id @default(uuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  parkingSpotId String
-  parkingSpot   ParkingSpot @relation(fields: [parkingSpotId], references: [id])
-  startTime     DateTime
-  endTime       DateTime
-  totalPrice    Float
+  id              String        @id @default(uuid())
+  clientId        String
+  client          User          @relation(fields: [clientId], references: [id])
+  parkingSpotId   String
+  parkingSpot     ParkingSpot   @relation(fields: [parkingSpotId], references: [id])
+  startTime       DateTime
+  endTime         DateTime
+  totalPrice      Float
+  flightNumber    String?
+  status          BookingStatus
+  promoCodeId     String?
+  promoCode       PromoCode?    @relation(fields: [promoCodeId], references: [id])
+  discountApplied Float
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Feedback {
-  id        String  @id @default(uuid())
-  userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
   parkingId String
-  parking   Parking @relation(fields: [parkingId], references: [id])
+  parking   Parking  @relation(fields: [parkingId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   comment   String
   rating    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Verification {
+  id              String    @id @default(uuid())
+  ownerId         String    @unique
+  owner           User      @relation(fields: [ownerId], references: [id])
+  status          String
+  rejectionReason String?
+  submittedAt     DateTime
+  reviewedAt      DateTime?
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  parkingId String
+  parking   Parking  @relation(fields: [parkingId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model PromoCode {
+  id           String    @id @default(uuid())
+  code         String
+  type         String
+  value        Float
+  applicableTo String
+  applicableId String
+  startDate    DateTime
+  endDate      DateTime
+  usageLimit   Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Booking      Booking[]
 }
 
 enum UserRole {
   ADMIN
   PARKING_OWNER
   CLIENT
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
 }
