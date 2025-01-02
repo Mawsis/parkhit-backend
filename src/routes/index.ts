@@ -1,14 +1,23 @@
 import { Router } from "express";
 import authRoutes from "./authRoutes";
+import spotRoutes from "./spotsRoutes";
+import adminRoutes from "./adminRoutes";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../docs/swagger.json";
 import redisClient from "../config/redis";
 
 const router = Router();
 
+//Docs
 router.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-router.use("/auth", authRoutes);
 
+//Routes
+router.use("/auth", authRoutes);
+router.use("/spots", spotRoutes);
+
+
+//Admin
+router.use("/admin", adminRoutes);
 
 
 router.get('/test-redis', async (req, res) => {
